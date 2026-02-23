@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  VIEWER
+}
+
+enum Platform {
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+  MULTI_PLATFORM
+}
+
+enum CreatorCategory {
+  TCG
+  GAMBLING
+  GAMING
+  LIFESTYLE
+  COMEDY
+  OTHER
+}
+
+enum CreatorStatus {
+  LEAD
+  CONTACTED
+  RESPONDED
+  NEGOTIATING
+  AGREED
+  ONBOARDING
+  ACTIVE
+  PAUSED
+  CHURNED
+  REJECTED
+}
+
+enum CreatorSource {
+  OUTBOUND_DM
+  INBOUND
+  REFERRAL
+  AGENCY
+  OTHER
+}
+
+enum RateType {
+  FLAT
+  CPM
+  HYBRID
+  REVENUE_SHARE
+  BARTER
+}
+
+enum PaymentTerms {
+  NET_15
+  NET_30
+  NET_60
+  ON_DELIVERY
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum VideoPlatform {
+  INSTAGRAM_REEL
+  INSTAGRAM_STORY
+  TIKTOK
+  YOUTUBE_SHORT
+  YOUTUBE_VIDEO
+}
+
+enum ContentType {
+  PACK_OPENING
+  REVIEW
+  UNBOXING
+  GIVEAWAY
+  TESTIMONIAL
+  TUTORIAL
+  OTHER
+}
+
+enum VideoPaymentStatus {
+  PENDING
+  INVOICED
+  PAID
+  DISPUTED
+}
+
+enum ActivityType {
+  NOTE
+  EMAIL
+  DM
+  CALL
+  STATUS_CHANGE
+  RATE_CHANGE
+  VIDEO_ADDED
+  PAYMENT
+  OTHER
+}
+
+enum PaymentMethod {
+  PAYPAL
+  WIRE
+  CRYPTO
+  VENMO
+  OTHER
+}
+
+enum PaymentStatus {
+  SCHEDULED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(VIEWER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedCreators Creator[]
+  activities       Activity[]
+
+  @@index([email])
+}
+
+model Creator {
+  id              String          @id @default(cuid())
+  name            String
+  handle          String
+  email           String?
+  phone           String?
+  platform        Platform
+  category        CreatorCategory
+  followerCount   Int             @default(0)
+  engagementRate  Float           @default(0)
+  profileImageUrl String?
+  bio             String?
+
+  // Pipeline
+  status       CreatorStatus @default(LEAD)
+  source       CreatorSource @default(OTHER)
+  outreachDate DateTime?
+  responseDate DateTime?
+  closedDate   DateTime?
+
+  // Deal
+  ratePerVideo       Float?
+  rateType           RateType?
+  revSharePercentage Float?
+  contractNotes      String?
+  paymentTerms       PaymentTerms?
+
+  // Metadata
+  tags         String[]
+  priority     Priority    @default(MEDIUM)
+  assignedToId String?
+  assignedTo   User?       @relation(fields: [assignedToId], references: [id])
+  notes        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  videos     Video[]
+  activities Activity[]
+  payments   Payment[]
+
+  @@index([status])
+  @@index([platform])
+  @@index([category])
+  @@index([priority])
+  @@index([assignedToId])
+  @@index([name])
+  @@index([handle])
+}
+
+model Video {
+  id           String        @id @default(cuid())
+  creatorId    String
+  creator      Creator       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  platform     VideoPlatform
+  postUrl      String?
+  thumbnailUrl String?
+  postedAt     DateTime
+
+  // Content
+  contentType     ContentType
+  caption         String?
+  productFeatured String?
+
+  // Metrics
+  views      Int   @default(0)
+  likes      Int   @default(0)
+  comments   Int   @default(0)
+  shares     Int   @default(0)
+  saves      Int   @default(0)
+  estimatedReach Int?
+  impressions    Int?
+
+  // Financial
+  amountPaid    Float              @default(0)
+  paymentStatus VideoPaymentStatus @default(PENDING)
+  paymentDate   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payments Payment[]
+
+  @@index([creatorId])
+  @@index([platform])
+  @@index([postedAt])
+  @@index([paymentStatus])
+}
+
+model Activity {
+  id        String       @id @default(cuid())
+  creatorId String
+  creator   Creator      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  type      ActivityType
+  content   String
+  metadata  Json?
+  createdAt DateTime     @default(now())
+
+  @@index([creatorId])
+  @@index([createdAt])
+  @@index([type])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  creatorId     String
+  creator       Creator       @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  videoId       String?
+  video         Video?        @relation(fields: [videoId], references: [id])
+  amount        Float
+  method        PaymentMethod
+  status        PaymentStatus @default(SCHEDULED)
+  reference     String?
+  scheduledDate DateTime?
+  completedDate DateTime?
+  createdAt     DateTime      @default(now())
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([scheduledDate])
+}
