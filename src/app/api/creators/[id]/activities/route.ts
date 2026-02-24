@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { searchParams } = new URL(req.url);
   const type = searchParams.get("type");
 
@@ -30,17 +25,16 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session.user.role === "VIEWER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const body = await req.json();
+  const user = await prisma.user.findFirst();
+  if (!user) {
+    return NextResponse.json({ error: "No users exist" }, { status: 500 });
   }
 
-  const body = await req.json();
   const activity = await prisma.activity.create({
     data: {
       creatorId: params.id,
-      userId: session.user.id,
+      userId: user.id,
       type: body.type || "NOTE",
       content: body.content,
       metadata: body.metadata,

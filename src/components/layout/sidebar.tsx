@@ -5,16 +5,13 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
-  Video,
   CreditCard,
   BarChart3,
   Settings,
   Diamond,
-  LogOut,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -87,13 +84,6 @@ export function Sidebar() {
             <ChevronLeft className="h-5 w-5 shrink-0" />
           )}
           {!collapsed && <span>Collapse</span>}
-        </button>
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-red-500/10 hover:text-red-400 transition-all"
-        >
-          <LogOut className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
     </aside>

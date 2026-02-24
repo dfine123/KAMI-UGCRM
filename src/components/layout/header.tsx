@@ -1,15 +1,12 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { Search, Bell } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/utils";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function Header() {
-  const { data: session } = useSession();
   const [search, setSearch] = useState("");
   const router = useRouter();
 
@@ -38,17 +35,11 @@ export function Header() {
         </button>
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="text-xs">
-              {session?.user?.name ? getInitials(session.user.name) : "U"}
-            </AvatarFallback>
+            <AvatarFallback className="text-xs">A</AvatarFallback>
           </Avatar>
           <div className="hidden md:block">
-            <p className="text-sm font-medium text-white">
-              {session?.user?.name || "User"}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {session?.user?.role || "Viewer"}
-            </p>
+            <p className="text-sm font-medium text-white">Admin</p>
+            <p className="text-xs text-muted-foreground">Admin</p>
           </div>
         </div>
       </div>

@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const creator = await prisma.creator.findUnique({
     where: { id: params.id },
     include: {
@@ -64,22 +59,18 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session.user.role === "VIEWER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   const body = await req.json();
   const existing = await prisma.creator.findUnique({ where: { id: params.id } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  const user = await prisma.user.findFirst();
+
   // Track status changes
-  if (body.status && body.status !== existing.status) {
+  if (body.status && body.status !== existing.status && user) {
     await prisma.activity.create({
       data: {
         creatorId: params.id,
-        userId: session.user.id,
+        userId: user.id,
         type: "STATUS_CHANGE",
         content: `Status changed from ${existing.status} to ${body.status}`,
         metadata: { oldStatus: existing.status, newStatus: body.status },
@@ -88,11 +79,11 @@ export async function PATCH(
   }
 
   // Track rate changes
-  if (body.ratePerVideo && body.ratePerVideo !== existing.ratePerVideo) {
+  if (body.ratePerVideo && body.ratePerVideo !== existing.ratePerVideo && user) {
     await prisma.activity.create({
       data: {
         creatorId: params.id,
-        userId: session.user.id,
+        userId: user.id,
         type: "RATE_CHANGE",
         content: `Rate changed from $${existing.ratePerVideo || 0} to $${body.ratePerVideo}`,
         metadata: { oldRate: existing.ratePerVideo, newRate: body.ratePerVideo },
@@ -117,12 +108,6 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   await prisma.creator.delete({ where: { id: params.id } });
   return NextResponse.json({ success: true });
 }

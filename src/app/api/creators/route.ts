@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const { searchParams } = new URL(req.url);
   const search = searchParams.get("search") || "";
   const status = searchParams.get("status")?.split(",").filter(Boolean) || [];
@@ -72,12 +67,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (session.user.role === "VIEWER") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   const body = await req.json();
   const {
     name, handle, email, phone, platform, category, followerCount,
@@ -103,14 +92,17 @@ export async function POST(req: NextRequest) {
   });
 
   // Log activity
-  await prisma.activity.create({
-    data: {
-      creatorId: creator.id,
-      userId: session.user.id,
-      type: "NOTE",
-      content: `Creator "${name}" added to CRM`,
-    },
-  });
+  const user = await prisma.user.findFirst();
+  if (user) {
+    await prisma.activity.create({
+      data: {
+        creatorId: creator.id,
+        userId: user.id,
+        type: "NOTE",
+        content: `Creator "${name}" added to CRM`,
+      },
+    });
+  }
 
   return NextResponse.json(creator, { status: 201 });
 }

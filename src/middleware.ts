@@ -1,25 +1,13 @@
-import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default withAuth({
-  pages: {
-    signIn: "/login",
-  },
-});
+export function middleware(request: NextRequest) {
+  if (request.nextUrl.pathname === "/login") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/creators/:path*",
-    "/payments/:path*",
-    "/analytics/:path*",
-    "/settings/:path*",
-    "/api/creators/:path*",
-    "/api/videos/:path*",
-    "/api/payments/:path*",
-    "/api/analytics/:path*",
-    "/api/dashboard/:path*",
-    "/api/users/:path*",
-    "/api/tags/:path*",
-    "/api/export/:path*",
-  ],
+  matcher: ["/login"],
 };
