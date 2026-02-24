@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Creator, Video, Payment } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -78,7 +78,7 @@ async function main() {
     { name: "Ivan InvestCards", handle: "ivaninvestcards", platform: "YOUTUBE" as const, category: "TCG" as const, status: "LEAD" as const, source: "INBOUND" as const, followerCount: 48000, engagementRate: 3.4, ratePerVideo: null, rateType: null, paymentTerms: null, priority: "LOW" as const, tags: ["investment", "market", "long-form", "educational"], bio: "TCG as investment. Market analysis and portfolio tracking.", profileImageUrl: null, outreachDate: null, responseDate: null, closedDate: null },
   ];
 
-  const creators = [];
+  const creators: Creator[] = [];
   for (const data of creatorsData) {
     const c = await prisma.creator.create({
       data: {
@@ -122,7 +122,7 @@ async function main() {
     "PlayKami Premium Collection", "PlayKami Digital + Physical Bundle",
   ];
 
-  const videos = [];
+  const videos: Video[] = [];
   for (let i = 0; i < 55; i++) {
     const creator = activeCreators[i % activeCreators.length];
     const creatorData = creatorsData[creators.indexOf(creator)];
@@ -167,7 +167,7 @@ async function main() {
   console.log(`Created ${videos.length} videos`);
 
   // Payments
-  const payments = [];
+  const payments: Payment[] = [];
   for (const video of videos) {
     if (video.paymentStatus === "PAID" || Math.random() > 0.4) {
       const p = await prisma.payment.create({

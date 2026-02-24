@@ -7,11 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { formatNumber, formatCurrency, formatCPV, formatRelativeTime } from "@/lib/utils";
-import { CHART_COLORS, PIPELINE_STAGES } from "@/lib/constants";
 import Link from "next/link";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Funnel, FunnelChart, LabelList, Cell,
-} from "recharts";
 
 interface DashboardData {
   summary: {
