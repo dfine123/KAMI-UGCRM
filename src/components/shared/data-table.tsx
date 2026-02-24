@@ -80,7 +80,7 @@ export function DataTable<T extends Record<string, any>>({
       );
     } else {
       const newIds = pagedData.map((item) => item[keyField]);
-      onSelectionChange?.([...new Set([...selectedIds, ...newIds])]);
+      onSelectionChange?.(Array.from(new Set([...selectedIds, ...newIds])));
     }
   };
 

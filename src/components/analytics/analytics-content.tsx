@@ -8,7 +8,7 @@ import { formatNumber, formatCurrency, formatCPV, formatPercentage } from "@/lib
 import { CHART_COLORS } from "@/lib/constants";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis, Legend,
+  PieChart, Pie, Cell,
 } from "recharts";
 
 export function AnalyticsContent() {
