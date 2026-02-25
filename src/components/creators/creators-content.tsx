@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { PlatformIcon } from "@/components/shared/platform-icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { formatNumber, formatCurrency, formatCPV, formatRelativeTime, getInitials } from "@/lib/utils";
+import { formatNumber, formatCurrency, formatCPV, formatRelativeTime, getInitials, getProxiedImageUrl } from "@/lib/utils";
 import { ALL_STATUSES, CATEGORIES, PLATFORMS } from "@/lib/constants";
 import { KanbanBoard } from "@/components/creators/kanban-board";
 
@@ -230,7 +230,7 @@ export function CreatorsContent() {
                       <Link href={`/creators/${creator.id}`} className="flex items-center gap-3 group">
                         <Avatar className="h-8 w-8">
                           {creator.profileImageUrl && (
-                            <AvatarImage src={creator.profileImageUrl} />
+                            <AvatarImage src={getProxiedImageUrl(creator.profileImageUrl)} />
                           )}
                           <AvatarFallback className="text-xs">
                             {getInitials(creator.name)}

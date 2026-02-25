@@ -58,3 +58,14 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
+
+export function getProxiedImageUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    if (parsed.origin === window.location.origin) return url;
+  } catch {
+    return url;
+  }
+  return `/api/image-proxy?url=${encodeURIComponent(url)}`;
+}

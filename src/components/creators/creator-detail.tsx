@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { PlatformIcon } from "@/components/shared/platform-icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatNumber, formatCurrency, formatCPV, formatPercentage, formatRelativeTime, getInitials } from "@/lib/utils";
+import { formatNumber, formatCurrency, formatCPV, formatPercentage, formatRelativeTime, getInitials, getProxiedImageUrl } from "@/lib/utils";
 import { ALL_STATUSES } from "@/lib/constants";
 import { CreatorVideosTab } from "@/components/creators/creator-videos-tab";
 import { CreatorPaymentsTab } from "@/components/creators/creator-payments-tab";
@@ -91,7 +91,7 @@ export function CreatorDetail({ id }: { id: string }) {
       {/* Header */}
       <div className="flex items-start gap-6">
         <Avatar className="h-20 w-20 border-2 border-primary/30">
-          {creator.profileImageUrl && <AvatarImage src={creator.profileImageUrl} />}
+          {creator.profileImageUrl && <AvatarImage src={getProxiedImageUrl(creator.profileImageUrl)} />}
           <AvatarFallback className="text-2xl">{getInitials(creator.name)}</AvatarFallback>
         </Avatar>
         <div className="flex-1">

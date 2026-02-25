@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlatformIcon } from "@/components/shared/platform-icon";
-import { formatNumber, formatCurrency, getInitials } from "@/lib/utils";
+import { formatNumber, formatCurrency, getInitials, getProxiedImageUrl } from "@/lib/utils";
 import { PIPELINE_STAGES, STATUS_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +69,7 @@ export function KanbanBoard({ creators, onStatusChange }: KanbanBoardProps) {
                     <div className="flex items-center gap-2 mb-2">
                       <Avatar className="h-6 w-6">
                         {creator.profileImageUrl && (
-                          <AvatarImage src={creator.profileImageUrl} />
+                          <AvatarImage src={getProxiedImageUrl(creator.profileImageUrl)} />
                         )}
                         <AvatarFallback className="text-[10px]">
                           {getInitials(creator.name)}
