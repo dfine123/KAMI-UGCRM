@@ -26,10 +26,12 @@ export async function GET(
 
   const totalViews = creator.videos.reduce((sum, v) => sum + v.views, 0);
   const totalLikes = creator.videos.reduce((sum, v) => sum + v.likes, 0);
-  const totalSpend = creator.videos.reduce((sum, v) => sum + v.amountPaid, 0);
-  const totalPaid = creator.payments
-    .filter((p) => p.status === "COMPLETED")
+  const videoSpend = creator.videos.reduce((sum, v) => sum + v.amountPaid, 0);
+  const standalonePayments = creator.payments
+    .filter((p) => p.status === "COMPLETED" && !p.videoId)
     .reduce((sum, p) => sum + p.amount, 0);
+  const totalSpend = videoSpend + standalonePayments;
+  const totalPaid = totalSpend;
   const avgEngagement = creator.videos.length > 0
     ? creator.videos.reduce((sum, v) => {
         const eng = v.views > 0 ? ((v.likes + v.comments + v.shares + v.saves) / v.views) * 100 : 0;

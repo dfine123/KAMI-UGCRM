@@ -123,6 +123,31 @@ enum PaymentStatus {
   FAILED
 }
 
+enum CreatorTone {
+  CASUAL_MALE
+  CASUAL_FEMALE
+  FORMAL
+  NEUTRAL
+}
+
+enum TemplateCategory {
+  INITIAL_OUTREACH
+  FOLLOW_UP
+  NEGOTIATION
+  ONBOARDING
+  REACTIVATION
+  RATE_RESPONSE
+  INFO_RESPONSE
+  CUSTOM
+}
+
+enum TemplatePlatform {
+  INSTAGRAM_DM
+  EMAIL
+  TIKTOK_DM
+  UNIVERSAL
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -134,6 +159,7 @@ model User {
 
   assignedCreators Creator[]
   activities       Activity[]
+  templates        Template[]
 
   @@index([email])
 }
@@ -150,6 +176,7 @@ model Creator {
   engagementRate  Float           @default(0)
   profileImageUrl String?
   bio             String?
+  tone            CreatorTone     @default(NEUTRAL)
 
   // Pipeline
   status       CreatorStatus @default(LEAD)
@@ -260,4 +287,32 @@ model Payment {
   @@index([creatorId])
   @@index([status])
   @@index([scheduledDate])
+}
+
+model Upload {
+  id        String   @id @default(cuid())
+  data      Bytes
+  mimeType  String
+  fileName  String
+  createdAt DateTime @default(now())
+}
+
+model Template {
+  id          String           @id @default(cuid())
+  name        String
+  category    TemplateCategory
+  platform    TemplatePlatform
+  subject     String?
+  body        String
+  tags        String[]
+  isActive    Boolean          @default(true)
+  usageCount  Int              @default(0)
+  createdById String
+  createdBy   User             @relation(fields: [createdById], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([category])
+  @@index([platform])
+  @@index([isActive])
 }

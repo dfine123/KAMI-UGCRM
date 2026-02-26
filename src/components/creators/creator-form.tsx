@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Search, AlertTriangle, Lock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,24 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { useToast } from "@/components/ui/toast";
-import { ALL_STATUSES, CATEGORIES, PLATFORMS, SOURCES, RATE_TYPES, PAYMENT_TERMS } from "@/lib/constants";
+import { ALL_STATUSES, CATEGORIES, PLATFORMS, SOURCES, RATE_TYPES, PAYMENT_TERMS, TONES } from "@/lib/constants";
+import { formatNumber } from "@/lib/utils";
 
 interface CreatorFormProps {
   creatorId?: string;
+}
+
+interface IGProfile {
+  fullName: string;
+  username: string;
+  bio: string;
+  profilePicUrl: string;
+  followers: number;
+  following: number;
+  postCount: number;
+  isPrivate: boolean;
 }
 
 export function CreatorForm({ creatorId }: CreatorFormProps) {
@@ -24,11 +37,16 @@ export function CreatorForm({ creatorId }: CreatorFormProps) {
   const [fetching, setFetching] = useState(!!creatorId);
   const [users, setUsers] = useState<{ id: string; name: string }[]>([]);
 
+  // Instagram import state
+  const [igInput, setIgInput] = useState("");
+  const [igLoading, setIgLoading] = useState(false);
+  const [igProfile, setIgProfile] = useState<IGProfile | null>(null);
+
   const [form, setForm] = useState({
     name: "", handle: "", email: "", phone: "",
     platform: "INSTAGRAM", category: "TCG",
     followerCount: 0, engagementRate: 0,
-    profileImageUrl: "", bio: "",
+    profileImageUrl: "", bio: "", tone: "NEUTRAL",
     status: "LEAD", source: "OUTBOUND_DM", priority: "MEDIUM",
     assignedToId: "", outreachDate: "", responseDate: "", closedDate: "",
     ratePerVideo: 0, rateType: "FLAT", paymentTerms: "NET_30",
@@ -51,6 +69,7 @@ export function CreatorForm({ creatorId }: CreatorFormProps) {
           platform: data.platform || "INSTAGRAM", category: data.category || "TCG",
           followerCount: data.followerCount || 0, engagementRate: data.engagementRate || 0,
           profileImageUrl: data.profileImageUrl || "", bio: data.bio || "",
+          tone: data.tone || "NEUTRAL",
           status: data.status || "LEAD", source: data.source || "OUTBOUND_DM",
           priority: data.priority || "MEDIUM", assignedToId: data.assignedToId || "",
           outreachDate: data.outreachDate ? data.outreachDate.split("T")[0] : "",
@@ -65,6 +84,47 @@ export function CreatorForm({ creatorId }: CreatorFormProps) {
         setFetching(false);
       });
   }, [creatorId]);
+
+  const fetchInstagramProfile = async () => {
+    if (!igInput.trim()) return;
+    setIgLoading(true);
+    setIgProfile(null);
+    try {
+      const res = await fetch("/api/instagram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: igInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        addToast({ title: data.error || "Failed to fetch profile", variant: "destructive" });
+        return;
+      }
+      setIgProfile(data);
+    } catch {
+      addToast({ title: "Failed to fetch Instagram profile", variant: "destructive" });
+    } finally {
+      setIgLoading(false);
+    }
+  };
+
+  const applyInstagramProfile = () => {
+    if (!igProfile) return;
+    setForm((prev) => ({
+      ...prev,
+      name: igProfile.fullName || prev.name,
+      handle: igProfile.username || prev.handle,
+      bio: igProfile.bio || prev.bio,
+      profileImageUrl: igProfile.profilePicUrl || prev.profileImageUrl,
+      followerCount: igProfile.followers || prev.followerCount,
+      platform: "INSTAGRAM",
+      notes: igProfile.postCount > 0
+        ? `${prev.notes ? prev.notes + "\n" : ""}Instagram posts: ${igProfile.postCount}`
+        : prev.notes,
+    }));
+    setIgProfile(null);
+    addToast({ title: "Profile data imported", variant: "success" });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +176,78 @@ export function CreatorForm({ creatorId }: CreatorFormProps) {
         <ArrowLeft className="h-4 w-4" /> Back
       </Link>
 
+      {/* Instagram Import */}
+      {!creatorId && (
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Search className="h-4 w-4 text-primary" /> Import from Instagram
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                value={igInput}
+                onChange={(e) => setIgInput(e.target.value)}
+                placeholder="@username or https://instagram.com/username"
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), fetchInstagramProfile())}
+              />
+              <Button
+                type="button"
+                onClick={fetchInstagramProfile}
+                disabled={igLoading || !igInput.trim()}
+              >
+                {igLoading ? "Fetching..." : "Fetch"}
+              </Button>
+            </div>
+
+            {igProfile && (
+              <div className="rounded-lg border border-white/10 bg-surface-overlay/50 p-4 space-y-3">
+                {igProfile.isPrivate && (
+                  <div className="flex items-center gap-2 text-amber-400 text-sm">
+                    <Lock className="h-4 w-4" />
+                    <span>This account is private. Only public info is available.</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-4">
+                  {igProfile.profilePicUrl && (
+                    <img
+                      src={`/api/image-proxy?url=${encodeURIComponent(igProfile.profilePicUrl)}`}
+                      alt={igProfile.fullName}
+                      className="h-16 w-16 rounded-full object-cover border border-white/10"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-white">{igProfile.fullName}</p>
+                    <p className="text-sm text-muted-foreground">@{igProfile.username}</p>
+                    {igProfile.bio && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{igProfile.bio}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-6 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Followers</span>
+                    <p className="font-semibold text-white">{formatNumber(igProfile.followers)}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Following</span>
+                    <p className="font-semibold text-white">{formatNumber(igProfile.following)}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Posts</span>
+                    <p className="font-semibold text-white">{formatNumber(igProfile.postCount)}</p>
+                  </div>
+                </div>
+                <Button type="button" onClick={applyInstagramProfile} className="w-full">
+                  Apply to Form
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Basic Info */}
       <Card>
         <CardHeader><CardTitle className="text-base">Basic Information</CardTitle></CardHeader>
@@ -162,9 +294,18 @@ export function CreatorForm({ creatorId }: CreatorFormProps) {
             <Label>Engagement Rate (%)</Label>
             <Input type="number" step="0.1" value={form.engagementRate} onChange={(e) => update("engagementRate", e.target.value)} />
           </div>
+          <div className="space-y-2">
+            <Label>Tone</Label>
+            <Select value={form.tone} onValueChange={(v) => update("tone", v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TONES.map((t) => <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2 md:col-span-2">
-            <Label>Profile Image URL</Label>
-            <Input value={form.profileImageUrl} onChange={(e) => update("profileImageUrl", e.target.value)} placeholder="https://..." />
+            <Label>Profile Image</Label>
+            <ImageUpload value={form.profileImageUrl} onChange={(url) => update("profileImageUrl", url)} />
           </div>
           <div className="space-y-2 md:col-span-2">
             <Label>Bio</Label>

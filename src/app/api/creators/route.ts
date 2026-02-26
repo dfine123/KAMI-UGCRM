@@ -42,6 +42,10 @@ export async function GET(req: NextRequest) {
         videos: {
           select: { views: true, amountPaid: true },
         },
+        payments: {
+          where: { status: "COMPLETED", videoId: null },
+          select: { amount: true },
+        },
       },
       orderBy: { [sortBy]: sortDir },
       skip: page * limit,
@@ -52,10 +56,13 @@ export async function GET(req: NextRequest) {
 
   const creatorsWithStats = creators.map((c) => {
     const totalViews = c.videos.reduce((sum, v) => sum + v.views, 0);
-    const totalSpend = c.videos.reduce((sum, v) => sum + v.amountPaid, 0);
+    const videoSpend = c.videos.reduce((sum, v) => sum + v.amountPaid, 0);
+    const standaloneSpend = c.payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalSpend = videoSpend + standaloneSpend;
     return {
       ...c,
       videos: undefined,
+      payments: undefined,
       totalViews,
       totalSpend,
       cpv: totalViews > 0 ? totalSpend / totalViews : 0,
@@ -70,7 +77,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
     name, handle, email, phone, platform, category, followerCount,
-    engagementRate, profileImageUrl, bio, status, source, outreachDate,
+    engagementRate, profileImageUrl, bio, tone, status, source, outreachDate,
     responseDate, closedDate, ratePerVideo, rateType, revSharePercentage,
     contractNotes, paymentTerms, tags, priority, assignedToId, notes,
   } = body;
@@ -80,7 +87,8 @@ export async function POST(req: NextRequest) {
       name, handle, email, phone, platform, category,
       followerCount: followerCount || 0,
       engagementRate: engagementRate || 0,
-      profileImageUrl, bio, status: status || "LEAD",
+      profileImageUrl, bio, tone: tone || "NEUTRAL",
+      status: status || "LEAD",
       source: source || "OTHER",
       outreachDate: outreachDate ? new Date(outreachDate) : null,
       responseDate: responseDate ? new Date(responseDate) : null,

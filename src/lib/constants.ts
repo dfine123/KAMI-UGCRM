@@ -119,6 +119,31 @@ export const SOURCES = [
   "OTHER",
 ] as const;
 
+export const TONES = [
+  "CASUAL_MALE",
+  "CASUAL_FEMALE",
+  "FORMAL",
+  "NEUTRAL",
+] as const;
+
+export const TEMPLATE_CATEGORIES = [
+  "INITIAL_OUTREACH",
+  "FOLLOW_UP",
+  "NEGOTIATION",
+  "ONBOARDING",
+  "REACTIVATION",
+  "RATE_RESPONSE",
+  "INFO_RESPONSE",
+  "CUSTOM",
+] as const;
+
+export const TEMPLATE_PLATFORMS = [
+  "INSTAGRAM_DM",
+  "EMAIL",
+  "TIKTOK_DM",
+  "UNIVERSAL",
+] as const;
+
 export const CHART_COLORS = {
   primary: "#7C3AED",
   primaryLight: "#9461F5",

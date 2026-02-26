@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Edit, Plus, ArrowLeft, ExternalLink, Mail, Phone,
+  Edit, Plus, ArrowLeft, ExternalLink, Mail, Phone, MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,11 +20,13 @@ import { CreatorVideosTab } from "@/components/creators/creator-videos-tab";
 import { CreatorPaymentsTab } from "@/components/creators/creator-payments-tab";
 import { CreatorActivityTab } from "@/components/creators/creator-activity-tab";
 import { CreatorNotesTab } from "@/components/creators/creator-notes-tab";
+import { UseTemplateModal } from "@/components/templates/use-template-modal";
 import { useToast } from "@/components/ui/toast";
 
 export function CreatorDetail({ id }: { id: string }) {
   const [creator, setCreator] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const router = useRouter();
   const { addToast } = useToast();
 
@@ -75,6 +77,9 @@ export function CreatorDetail({ id }: { id: string }) {
           <span className="text-sm">Back to Creators</span>
         </Link>
         <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setShowTemplateModal(true)}>
+            <MessageSquare className="h-4 w-4 mr-2" /> Use Template
+          </Button>
           <Link href={`/creators/${id}/edit`}>
             <Button variant="outline" size="sm">
               <Edit className="h-4 w-4 mr-2" /> Edit Profile
@@ -188,6 +193,7 @@ export function CreatorDetail({ id }: { id: string }) {
                 <InfoRow label="Phone" value={creator.phone || "—"} />
                 <InfoRow label="Category" value={creator.category} />
                 <InfoRow label="Source" value={creator.source?.replace(/_/g, " ")} />
+                <InfoRow label="Tone" value={creator.tone?.replace(/_/g, " ") || "NEUTRAL"} />
                 <InfoRow label="Assigned To" value={creator.assignedTo?.name || "Unassigned"} />
                 <InfoRow label="Outreach Date" value={creator.outreachDate ? new Date(creator.outreachDate).toLocaleDateString() : "—"} />
                 <InfoRow label="Response Date" value={creator.responseDate ? new Date(creator.responseDate).toLocaleDateString() : "—"} />
@@ -258,6 +264,13 @@ export function CreatorDetail({ id }: { id: string }) {
           <CreatorNotesTab creatorId={id} initialNotes={creator.notes || ""} />
         </TabsContent>
       </Tabs>
+
+      {showTemplateModal && (
+        <UseTemplateModal
+          creator={creator}
+          onClose={() => { setShowTemplateModal(false); fetchCreator(); }}
+        />
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
   Diamond,
   ChevronLeft,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -18,6 +19,7 @@ import { useState } from "react";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Creators", href: "/creators", icon: Users },
+  { name: "Templates", href: "/templates", icon: FileText },
   { name: "Payments", href: "/payments", icon: CreditCard },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },

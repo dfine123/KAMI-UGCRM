@@ -42,10 +42,17 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
+  // Build standalone payment spend per creator
+  const standaloneSpend: Record<string, number> = {};
+  payments.filter((p) => !p.completedDate || true).forEach((p) => {
+    standaloneSpend[p.creatorId] = (standaloneSpend[p.creatorId] || 0) + p.amount;
+  });
+
   // Creator leaderboard
   const leaderboard = creators.map((c) => {
     const totalViews = c.videos.reduce((sum, v) => sum + v.views, 0);
-    const totalSpend = c.videos.reduce((sum, v) => sum + v.amountPaid, 0);
+    const videoSpend = c.videos.reduce((sum, v) => sum + v.amountPaid, 0);
+    const totalSpend = videoSpend + (standaloneSpend[c.id] || 0);
     const totalEng = c.videos.reduce((sum, v) => sum + v.likes + v.comments + v.shares + v.saves, 0);
     return {
       id: c.id, name: c.name, handle: (c as any).handle,

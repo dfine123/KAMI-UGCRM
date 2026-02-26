@@ -61,9 +61,11 @@ export function getInitials(name: string): string {
 
 export function getProxiedImageUrl(url: string | null | undefined): string | undefined {
   if (!url) return undefined;
+  // Local URLs (e.g. /api/uploads/...) don't need proxying
+  if (url.startsWith("/")) return url;
   try {
     const parsed = new URL(url);
-    if (parsed.origin === window.location.origin) return url;
+    if (typeof window !== "undefined" && parsed.origin === window.location.origin) return url;
   } catch {
     return url;
   }

@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
     statusCounts,
     allVideos,
     recentVideos,
-    completedPayments,
+    videoSpendAgg,
+    completedPaymentsNoVideo,
     recentActivities,
     topCreators,
   ] = await Promise.all([
@@ -38,8 +39,13 @@ export async function GET(req: NextRequest) {
       _sum: { views: true },
       _count: { id: true },
     }),
+    // Sum amountPaid from all videos
+    prisma.video.aggregate({
+      _sum: { amountPaid: true },
+    }),
+    // Sum completed payments NOT linked to a video (standalone payments)
     prisma.payment.aggregate({
-      where: { status: "COMPLETED" },
+      where: { status: "COMPLETED", videoId: null },
       _sum: { amount: true },
     }),
     prisma.activity.findMany({
@@ -69,7 +75,8 @@ export async function GET(req: NextRequest) {
 
   const totalViews = allVideos._sum.views || 0;
   const recentViews = recentVideos._sum.views || 0;
-  const totalSpend = completedPayments._sum.amount || 0;
+  // Total spend = video amountPaid + standalone completed payments
+  const totalSpend = (videoSpendAgg._sum.amountPaid || 0) + (completedPaymentsNoVideo._sum.amount || 0);
   const totalVideoCount = allVideos._count.id || 0;
 
   // Pipeline funnel
