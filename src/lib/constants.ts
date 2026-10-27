@@ -155,3 +155,21 @@ export const CHART_COLORS = {
   cyan: "#06B6D4",
   gray: "#64748B",
 };
+
+export const COMMUNITY_STATUSES = [
+  "NOT_CONTACTED",
+  "REACHED_OUT",
+  "RESPONDED",
+  "NEGOTIATING",
+  "PARTNERED",
+  "DECLINED",
+] as const;
+
+export const COMMUNITY_STATUS_COLORS: Record<string, string> = {
+  NOT_CONTACTED: "bg-gray-500/20 text-gray-300 border-gray-500/30",
+  REACHED_OUT: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+  RESPONDED: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+  NEGOTIATING: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  PARTNERED: "bg-green-500/20 text-green-300 border-green-500/30",
+  DECLINED: "bg-red-500/20 text-red-300 border-red-500/30",
+};

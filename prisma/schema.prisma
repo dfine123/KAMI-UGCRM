@@ -316,3 +316,29 @@ model Template {
   @@index([platform])
   @@index([isActive])
 }
+
+enum CommunityStatus {
+  NOT_CONTACTED
+  REACHED_OUT
+  RESPONDED
+  NEGOTIATING
+  PARTNERED
+  DECLINED
+}
+
+// Discord (and similar) community partnerships, tracked separately from creators
+model Community {
+  id                String          @id @default(cuid())
+  name              String
+  communityPlatform String          @default("DISCORD")
+  creatorPlatform   String?
+  communitySize     Int             @default(0)
+  creatorSize       String?
+  status            CommunityStatus @default(NOT_CONTACTED)
+  askingDeal        String?
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([status])
+}
